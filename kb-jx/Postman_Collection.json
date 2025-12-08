@@ -1,0 +1,159 @@
+{
+  "info": {
+    "name": "文档检测与批量处理系统 API",
+    "description": "文档纯文本检测、格式转换、批量处理系统的完整 API 集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 健康检查",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "检查服务是否正常运行"
+      }
+    },
+    {
+      "name": "2. 根路径",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        },
+        "description": "获取系统信息和可用端点列表"
+      }
+    },
+    {
+      "name": "3. 单文件上传分析",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "",
+              "description": "选择要上传的文件（支持 .txt, .md, .docx, .xlsx, .pptx, .pdf）"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/document/analyze",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "document", "analyze"]
+        },
+        "description": "上传单个文件进行分析，检测是否为纯文本并自动转换为 DOCX"
+      }
+    },
+    {
+      "name": "4. 批量上传文件",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": "",
+              "description": "第一个文件"
+            },
+            {
+              "key": "files",
+              "type": "file",
+              "src": "",
+              "description": "第二个文件"
+            },
+            {
+              "key": "files",
+              "type": "file",
+              "src": "",
+              "description": "第三个文件（可以继续添加更多）"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/documents/batch-upload",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "documents", "batch-upload"]
+        },
+        "description": "批量上传多个文件。注意：如需保留目录结构，请在文件名中包含相对路径（如 finance/report.pdf）"
+      }
+    },
+    {
+      "name": "5. 查询批量任务状态",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/batch/status/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "batch", "status", "{{task_id}}"]
+        },
+        "description": "查询批量任务的处理状态、进度和结果。请先执行批量上传获取 task_id"
+      }
+    },
+    {
+      "name": "6. 下载纯文字转换包",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/batch/download/pure-converted/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "batch", "download", "pure-converted", "{{task_id}}"]
+        },
+        "description": "下载所有纯文字文档转换为 DOCX 后的 ZIP 包（保留目录结构）"
+      }
+    },
+    {
+      "name": "7. 下载富媒体原文件包",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/batch/download/rich-original/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "batch", "download", "rich-original", "{{task_id}}"]
+        },
+        "description": "下载所有富媒体文档的原文件 ZIP 包（保留目录结构）"
+      }
+    },
+    {
+      "name": "8. 下载所有文件包",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/batch/download/all/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "batch", "download", "all", "{{task_id}}"]
+        },
+        "description": "下载所有文件（纯文字转换后 + 富媒体原文件）的 ZIP 包（保留目录结构）"
+      }
+    }
+  ]
+}

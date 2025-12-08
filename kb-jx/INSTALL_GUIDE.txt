@@ -1,0 +1,138 @@
+========================================
+内网环境部署指南
+========================================
+
+您的离线包已包含所有必需的依赖，包括：
+- PyMuPDF-1.23.8 (用于 PDF 处理)
+- pywin32-311 (用于旧 Office 格式处理)
+
+========================================
+快速安装（推荐）
+========================================
+
+方法 1: 一键安装所有依赖
+--------------------------
+运行：install_offline.bat
+
+此脚本会自动安装所有依赖，包括 PyMuPDF 和 pywin32
+
+
+方法 2: 仅安装 PDF 和旧格式支持
+--------------------------
+运行：install_pdf_support.bat
+
+此脚本仅安装 PyMuPDF 和 pywin32
+
+
+方法 3: 手动安装
+--------------------------
+cd 到项目目录，然后执行：
+
+# 安装所有依赖
+pip install --no-index --find-links=offline_packages -r requirements.txt
+
+# 或者单独安装
+pip install --no-index --find-links=offline_packages PyMuPDF
+pip install --no-index --find-links=offline_packages pywin32
+
+========================================
+验证安装
+========================================
+
+执行以下命令验证：
+
+python -c "import fitz; print('PyMuPDF OK')"
+python -c "import win32com.client, pythoncom; print('pywin32 OK')"
+
+或运行：
+python verify_deps.py
+
+========================================
+离线包清单
+========================================
+
+PDF 支持：
+  ✓ PyMuPDF-1.23.8-cp310-none-win_amd64.whl (3.3 MB)
+  ✓ PyMuPDFb-1.23.7-py3-none-win_amd64.whl (23.3 MB)
+
+旧格式支持：
+  ✓ pywin32-311-cp310-cp310-win_amd64.whl (9.1 MB)
+
+核心依赖：
+  ✓ fastapi-0.104.1
+  ✓ uvicorn-0.24.0
+  ✓ python-docx-1.1.0
+  ✓ openpyxl-3.1.2
+  ✓ python-pptx-0.6.23
+  ✓ 及其他 24 个依赖包
+
+========================================
+功能说明
+========================================
+
+安装后系统支持：
+
+1. 核心格式（必需依赖，已包含）
+   ✓ .docx - Word 文档
+   ✓ .xlsx - Excel 表格
+   ✓ .pptx - PowerPoint 演示文稿
+   ✓ .txt  - 纯文本
+   ✓ .md   - Markdown
+
+2. PDF 支持（需要 PyMuPDF）
+   ✓ .pdf  - PDF 文档检测和转换
+
+3. 旧格式支持（需要 pywin32 + 本地 Microsoft Office）
+   ✓ .doc  - Word 旧格式
+   ✓ .xls  - Excel 旧格式
+   ✓ .ppt  - PowerPoint 旧格式
+
+========================================
+注意事项
+========================================
+
+1. Python 版本：必须是 Python 3.10
+   - 离线包中的 wheel 文件是为 cp310 编译的
+   - 其他版本无法使用这些 wheel 文件
+
+2. 操作系统：Windows 64 位
+   - wheel 文件后缀为 win_amd64
+   - 不支持 32 位或其他操作系统
+
+3. Microsoft Office（可选）
+   - 如需处理 .doc/.xls/.ppt 文件
+   - 需在本地安装 Microsoft Office
+   - 仅安装 pywin32 是不够的
+
+4. 内网环境
+   - 所有依赖已包含在 offline_packages 目录
+   - 无需互联网连接
+   - 使用 --no-index --find-links=offline_packages 参数
+
+========================================
+故障排除
+========================================
+
+问题：pip 报错找不到版本
+解决：
+  - 检查 Python 版本是否为 3.10
+  - 确认在正确的目录执行命令
+  - 使用完整路径：--find-links=D:\aigc1\kb-jx\offline_packages
+
+问题：import fitz 失败
+解决：
+  - 运行：pip install --no-index --find-links=offline_packages PyMuPDF
+  - 确认 PyMuPDF-1.23.8 和 PyMuPDFb-1.23.7 都已安装
+
+问题：import win32com.client 失败
+解决：
+  - 运行：pip install --no-index --find-links=offline_packages pywin32
+  - 确认版本是 311（不是 306）
+
+问题：.doc/.xls/.ppt 转换失败
+解决：
+  - 确认已安装 pywin32
+  - 确认本地已安装 Microsoft Office
+  - 检查 Office 版本是否支持 COM 接口
+
+========================================

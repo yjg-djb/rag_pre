@@ -1,0 +1,225 @@
+﻿========================================
+文档检测与批量处理系统
+离线部署包 - 清单
+========================================
+
+生成时间: 2025-11-11
+Python 版本: 3.10+
+系统要求: Windows
+
+========================================
+1. 目录结构
+========================================
+
+kb-jx/
+ offline_packages/          # 依赖包 (32个, ~51MB)
+ api/v1/
+    endpoints.py          # API 接口
+ models/
+    schemas.py            # 数据模型
+ services/
+    detector.py           # 文档检测器
+    converter.py          # 格式转换器
+    zipper.py             # ZIP 打包
+ utils/
+    file_handler.py       # 文件处理
+    logger.py             # 日志系统
+    cleaner.py            # 存储清理
+ static/
+    upload.html           # 上传页面
+ main.py                   # 主程序入口
+ requirements.txt          # 依赖清单
+ install_offline.bat       # 离线安装脚本
+ verify_install.bat        # 安装验证脚本
+ create_package.bat        # 打包脚本
+ start.bat                 # 启动脚本
+ clean_storage.bat         # 清理脚本
+ clean_task.py             # 清理任务
+ README_OFFLINE.txt        # 部署说明
+
+========================================
+2. 依赖包列表 (32个)
+========================================
+
+核心框架:
+- fastapi-0.104.1
+- uvicorn-0.24.0
+- starlette-0.27.0
+- pydantic-2.12.4
+- pydantic_core-2.41.5
+
+文档处理:
+- python-docx-1.1.0
+- openpyxl-3.1.2
+- python-pptx-0.6.23
+- PyMuPDF-1.23.8
+- PyMuPDFb-1.23.7
+
+Office 支持:
+- pywin32-311
+
+工具库:
+- aiofiles-25.1.0
+- python-multipart-0.0.6
+- lxml-6.0.2
+- Pillow-12.0.0
+- XlsxWriter-3.2.9
+- et_xmlfile-2.0.0
+
+网络库:
+- httptools-0.7.1
+- websockets-15.0.1
+- h11-0.16.0
+- anyio-3.7.1
+- sniffio-1.3.1
+
+配置库:
+- python-dotenv-1.2.1
+- pyyaml-6.0.3
+- click-8.3.0
+- colorama-0.4.6
+- watchfiles-1.1.1
+
+类型支持:
+- typing-extensions-4.15.0
+- typing-inspection-0.4.2
+- annotated-types-0.7.0
+- idna-3.11
+- exceptiongroup-1.3.0
+
+========================================
+3. 部署步骤
+========================================
+
+步骤 1: 复制文件
+  - 将整个 kb-jx 目录复制到目标服务器
+
+步骤 2: 安装依赖
+  方法 A (推荐): 
+    双击运行 install_offline.bat
+  
+  方法 B (手动):
+    python -m pip install --upgrade pip --no-index --find-links=offline_packages
+    pip install --no-index --find-links=offline_packages -r requirements.txt
+
+步骤 3: 验证安装
+  双击运行 verify_install.bat
+  或执行: python verify_install.bat
+
+步骤 4: 启动服务
+  双击运行 start.bat
+  或执行: python main.py
+
+========================================
+4. 访问地址
+========================================
+
+主页:        http://localhost:8000
+上传页面:    http://localhost:8000/upload
+API 文档:    http://localhost:8000/docs
+健康检查:    http://localhost:8000/health
+
+========================================
+5. API 接口
+========================================
+
+单文件分析:
+  POST /api/v1/document/analyze
+  
+批量上传:
+  POST /api/v1/documents/batch-upload
+  
+查询状态:
+  GET /api/v1/batch/status/{task_id}
+  
+下载结果:
+  GET /api/v1/batch/download/pure-converted/{task_id}
+  GET /api/v1/batch/download/rich-original/{task_id}
+  GET /api/v1/batch/download/all/{task_id}
+
+存储管理:
+  POST /api/v1/storage/clean?days=7
+  GET /api/v1/storage/info
+
+========================================
+6. 支持的文件格式
+========================================
+
+ .txt   - 纯文本
+ .md    - Markdown
+ .docx  - Word 文档 (新格式)
+ .doc   - Word 文档 (旧格式，需 Office)
+ .xlsx  - Excel 表格 (新格式)
+ .xls   - Excel 表格 (旧格式，需 Office)
+ .pptx  - PPT 演示 (新格式)
+ .ppt   - PPT 演示 (旧格式，需 Office)
+ .pdf   - PDF 文档
+
+========================================
+7. 配置说明
+========================================
+
+端口修改:
+  编辑 main.py，修改最后的 port=8000
+
+存储目录:
+  storage/original/   - 原始文件
+  storage/converted/  - 转换文件
+  storage/batch/      - 批量任务
+
+日志目录:
+  logs/app_YYYYMMDD.log     - 完整日志
+  logs/error_YYYYMMDD.log   - 错误日志
+
+自动清理:
+  默认保留 7 天数据
+  可在 main.py 中修改 days 参数
+
+========================================
+8. 常见问题
+========================================
+
+Q: Python 未检测到？
+A: 确保安装 Python 3.10+ 并添加到 PATH
+
+Q: 依赖安装失败？
+A: 检查 offline_packages 目录是否完整
+
+Q: .doc/.xls/.ppt 不支持？
+A: 需要安装 Microsoft Office
+
+Q: 端口 8000 被占用？
+A: 修改 main.py 中的端口号
+
+Q: 防火墙阻止访问？
+A: 添加端口 8000 到防火墙白名单
+
+========================================
+9. 技术支持
+========================================
+
+系统版本:     1.0.0
+Python 要求:  3.10+
+依赖包数量:   32 个
+离线包大小:   ~51 MB
+支持平台:     Windows
+
+========================================
+10. 文件校验
+========================================
+
+关键文件:
+ main.py
+ requirements.txt
+ install_offline.bat
+ verify_install.bat
+ api/v1/endpoints.py
+ services/detector.py
+ services/converter.py
+ utils/logger.py
+ utils/cleaner.py
+ offline_packages/ (32个包)
+
+========================================
+更新日期: 2025-11-11
+========================================

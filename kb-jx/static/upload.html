@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档批量上传 - 支持文件夹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .file-list {
+            margin-top: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .file-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-item:hover {
+            background: #f8f9ff;
+        }
+        
+        .file-path {
+            flex: 1;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .file-size {
+            color: #999;
+            font-size: 12px;
+            margin-left: 15px;
+        }
+        
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .progress-text {
+            margin-top: 10px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .result-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+        }
+        
+        .result-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-number.success {
+            color: #4caf50;
+        }
+        
+        .stat-number.warning {
+            color: #ff9800;
+        }
+        
+        .stat-number.info {
+            color: #2196f3;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .download-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            color: #667eea;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-btn .btn-icon {
+            font-size: 24px;
+        }
+        
+        .download-btn .btn-text {
+            font-size: 14px;
+        }
+        
+        .download-btn .btn-hint {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .download-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .download-btn:hover .btn-hint {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .download-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .file-result-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .file-result-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #666;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .file-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .info-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .info-badge.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .info-badge.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 文档批量上传系统</h1>
+            <p>支持上传整个文件夹 | 自动保留目录结构 | 智能检测纯文本</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📂</div>
+                <div class="upload-text">点击选择文件夹或拖拽到此处</div>
+                <div class="upload-hint">支持 .txt .md .docx .xlsx .pptx .pdf 等格式</div>
+            </div>
+            
+            <input type="file" id="folderInput" class="file-input" webkitdirectory directory multiple>
+            <input type="file" id="fileInput" class="file-input" multiple>
+            
+            <div class="buttons">
+                <button class="btn btn-primary" id="selectFolderBtn">📁 选择文件夹</button>
+                <button class="btn btn-secondary" id="selectFilesBtn">📄 选择文件</button>
+                <button class="btn btn-primary" id="uploadBtn" disabled>🚀 开始上传</button>
+                <button class="btn btn-secondary" id="clearBtn">🗑️ 清空</button>
+            </div>
+            
+            <div id="fileListContainer" style="display: none;">
+                <h3 style="margin-top: 30px; color: #333;">已选择文件 (<span id="fileCount">0</span>)</h3>
+                <div class="file-list" id="fileList"></div>
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+                <div class="progress-text" id="progressText">准备上传...</div>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="result-container" id="resultContainer">
+                <div class="result-section">
+                    <div class="result-title">📊 处理统计</div>
+                    <div class="result-stats">
+                        <div class="stat-item">
+                            <div class="stat-number success" id="totalFiles">0</div>
+                            <div class="stat-label">总文件数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number info" id="pureTextCount">0</div>
+                            <div class="stat-label">纯文本文档</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="richMediaCount">0</div>
+                            <div class="stat-label">富媒体文档</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number warning" id="originalDuplicates">0</div>
+                            <div class="stat-label">原始文件重复</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="failedCount">0</div>
+                            <div class="stat-label">处理失败</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number info" id="tempFileCount">0</div>
+                            <div class="stat-label">临时锁文件</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-section">
+                    <div class="result-title">📥 下载文件包</div>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn" id="downloadPure">
+                            <span class="btn-icon">📝</span>
+                            <span class="btn-text">纯文本清洗包</span>
+                            <span class="btn-hint" id="pureHint">0 个文件</span>
+                        </a>
+                        <a href="#" class="download-btn" id="downloadRich">
+                            <span class="btn-icon">🖼️</span>
+                            <span class="btn-text">富媒体文档包</span>
+                            <span class="btn-hint" id="richHint">0 个文件</span>
+                        </a>
+                        <a href="#" class="download-btn" id="downloadAll">
+                            <span class="btn-icon">📦</span>
+                            <span class="btn-text">完整文件包</span>
+                            <span class="btn-hint" id="allHint">包含所有文件</span>
+                        </a>
+                        <a href="#" class="download-btn" id="downloadUniquePure">
+                            <span class="btn-icon">✨</span>
+                            <span class="btn-text">纯文本独一份</span>
+                            <span class="btn-hint" id="uniquePureHint">0 个文件</span>
+                        </a>
+                        <a href="#" class="download-btn" id="downloadUniqueRich">
+                            <span class="btn-icon">🌟</span>
+                            <span class="btn-text">富媒体独一份</span>
+                            <span class="btn-hint" id="uniqueRichHint">0 个文件</span>
+                        </a>
+                        <a href="#" class="download-btn disabled" id="downloadDuplicates">
+                            <span class="btn-icon">🔄</span>
+                            <span class="btn-text">原始重复文件</span>
+                            <span class="btn-hint" id="duplicateHint">0 个文件</span>
+                        </a>
+                        <a href="#" class="download-btn disabled" id="downloadFailed">
+                            <span class="btn-icon">❌</span>
+                            <span class="btn-text">处理失败文件</span>
+                            <span class="btn-hint" id="failedHint">0 个文件</span>
+                        </a>
+                        <a href="#" class="download-btn disabled" id="downloadTempFiles">
+                            <span class="btn-icon">📌</span>
+                            <span class="btn-text">临时锁文件</span>
+                            <span class="btn-hint" id="tempFileHint">0 个文件</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="result-section" id="pureTextSection" style="display: none;">
+                    <div class="result-title">
+                        📝 纯文本文档列表
+                        <span class="info-badge success">已清洗去重</span>
+                    </div>
+                    <div class="file-result-list" id="pureTextList"></div>
+                </div>
+                
+                <div class="result-section" id="richMediaSection" style="display: none;">
+                    <div class="result-title">
+                        🖼️ 富媒体文档列表
+                        <span class="info-badge">保留原格式</span>
+                    </div>
+                    <div class="file-result-list" id="richMediaList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        let selectedFiles = [];
+        let taskId = null;
+        
+        // 元素引用
+        const uploadArea = document.getElementById('uploadArea');
+        const folderInput = document.getElementById('folderInput');
+        const fileInput = document.getElementById('fileInput');
+        const selectFolderBtn = document.getElementById('selectFolderBtn');
+        const selectFilesBtn = document.getElementById('selectFilesBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const fileList = document.getElementById('fileList');
+        const fileCount = document.getElementById('fileCount');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultContainer = document.getElementById('resultContainer');
+        
+        // 选择文件夹
+        selectFolderBtn.addEventListener('click', () => {
+            folderInput.click();
+        });
+        
+        // 选择文件
+        selectFilesBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // 点击上传区域
+        uploadArea.addEventListener('click', () => {
+            folderInput.click();
+        });
+        
+        // 文件夹选择
+        folderInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        // 处理文件
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            displayFileList();
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+        
+        // 显示文件列表
+        function displayFileList() {
+            fileList.innerHTML = '';
+            fileCount.textContent = selectedFiles.length;
+            
+            if (selectedFiles.length > 0) {
+                fileListContainer.style.display = 'block';
+                
+                selectedFiles.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    
+                    const path = file.webkitRelativePath || file.name;
+                    const size = formatFileSize(file.size);
+                    
+                    item.innerHTML = `
+                        <span class="file-path">${path}</span>
+                        <span class="file-size">${size}</span>
+                    `;
+                    
+                    fileList.appendChild(item);
+                });
+            } else {
+                fileListContainer.style.display = 'none';
+            }
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        // 清空
+        clearBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            folderInput.value = '';
+            fileInput.value = '';
+            displayFileList();
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'none';
+            resultContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+        });
+        
+        // 上传
+        uploadBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+            
+            errorMessage.style.display = 'none';
+            progressContainer.style.display = 'block';
+            resultContainer.style.display = 'none';
+            uploadBtn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                
+                selectedFiles.forEach(file => {
+                    const path = file.webkitRelativePath || file.name;
+                    formData.append('files', file, path);
+                });
+                
+                progressText.textContent = '正在上传文件...';
+                progressFill.style.width = '30%';
+                progressFill.textContent = '30%';
+                
+                const response = await fetch(`${API_BASE}/api/v1/documents/batch-upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('上传失败');
+                }
+                
+                const data = await response.json();
+                taskId = data.task_id;
+                
+                progressFill.style.width = '60%';
+                progressFill.textContent = '60%';
+                progressText.textContent = '文件上传成功，正在处理...';
+                
+                // 轮询任务状态
+                await pollTaskStatus(taskId);
+                
+            } catch (error) {
+                showError('上传失败: ' + error.message);
+                progressContainer.style.display = 'none';
+                uploadBtn.disabled = false;
+            }
+        });
+        
+        // 轮询任务状态
+        async function pollTaskStatus(taskId) {
+            const maxAttempts = 60;
+            let attempts = 0;
+            
+            const poll = async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/api/v1/batch/status/${taskId}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'completed') {
+                        progressFill.style.width = '100%';
+                        progressFill.textContent = '100%';
+                        progressText.textContent = '处理完成！';
+                        
+                        setTimeout(() => {
+                            showResult(data);
+                        }, 500);
+                        
+                    } else if (data.status === 'processing') {
+                        const progress = Math.min(60 + (data.progress.completed / data.progress.total * 30), 90);
+                        progressFill.style.width = progress + '%';
+                        progressFill.textContent = Math.round(progress) + '%';
+                        progressText.textContent = `正在处理... (${data.progress.completed}/${data.progress.total})`;
+                        
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            setTimeout(poll, 1000);
+                        } else {
+                            throw new Error('处理超时');
+                        }
+                    } else {
+                        throw new Error('处理失败');
+                    }
+                    
+                } catch (error) {
+                    showError('查询状态失败: ' + error.message);
+                    progressContainer.style.display = 'none';
+                    uploadBtn.disabled = false;
+                }
+            };
+            
+            poll();
+        }
+        
+        // 显示结果
+        function showResult(data) {
+            progressContainer.style.display = 'none';
+            resultContainer.style.display = 'block';
+            uploadBtn.disabled = false;
+            
+            // 基本统计
+            document.getElementById('totalFiles').textContent = data.progress.total;
+            document.getElementById('pureTextCount').textContent = data.progress.pure_text_count;
+            document.getElementById('richMediaCount').textContent = data.progress.rich_media_count;
+            
+            // 新增：原始文件重复和处理失败和临时锁文件的统计
+            const duplicateCount = data.progress.duplicate_count || 0;
+            const failedCount = data.progress.failed_count || 0;
+            const tempFileCount = data.progress.temp_file_count || 0;
+            document.getElementById('originalDuplicates').textContent = duplicateCount;
+            document.getElementById('failedCount').textContent = failedCount;
+            document.getElementById('tempFileCount').textContent = tempFileCount;
+            
+            // 去重和清洗统计
+            const dedupStats = data.dedup_stats || {};
+            const docDuplicates = dedupStats.doc_duplicates || 0;
+            const paraExactDup = dedupStats.para_exact_dup_total || 0;
+            const paraNearDup = dedupStats.para_near_dup_total || 0;
+            const noiseRemoved = dedupStats.noise_removed_total || 0;
+            
+            console.log('完整统计:', { duplicateCount, failedCount, tempFileCount, docDuplicates, paraExactDup, paraNearDup, noiseRemoved });
+            console.log('下载链接:', {
+                duplicates: data.downloads.duplicates,
+                failed: data.downloads.failed,
+                temp_files: data.downloads.temp_files
+            });
+            
+            // 下载按钮提示
+            const pureCount = data.progress.pure_text_count;
+            const richCount = data.progress.rich_media_count;
+            const uniquePureCount = data.progress.unique_pure_count || 0;
+            const uniqueRichCount = data.progress.unique_rich_count || 0;
+            
+            document.getElementById('pureHint').textContent = `${pureCount} 个文件${pureCount > 0 ? ' · 已清洗去重' : ''}`;
+            document.getElementById('richHint').textContent = `${richCount} 个文件${richCount > 0 ? ' · 原格式' : ''}`;
+            document.getElementById('allHint').textContent = `${pureCount + richCount} 个文件 · 完整归档`;
+            document.getElementById('duplicateHint').textContent = `${duplicateCount} 个文件`;
+            document.getElementById('failedHint').textContent = `${failedCount} 个文件`;
+            document.getElementById('tempFileHint').textContent = `${tempFileCount} 个文件`;
+            
+            // 下载链接
+            const downloadPure = document.getElementById('downloadPure');
+            const downloadRich = document.getElementById('downloadRich');
+            const downloadAll = document.getElementById('downloadAll');
+            const downloadUniquePure = document.getElementById('downloadUniquePure');
+            const downloadUniqueRich = document.getElementById('downloadUniqueRich');
+            const downloadDuplicates = document.getElementById('downloadDuplicates');
+            const downloadFailed = document.getElementById('downloadFailed');
+            const downloadTempFiles = document.getElementById('downloadTempFiles');
+            
+            if (pureCount > 0) {
+                downloadPure.href = `${API_BASE}${data.downloads.pure_text_converted}`;
+                downloadPure.classList.remove('disabled');
+            } else {
+                downloadPure.href = '#';
+                downloadPure.classList.add('disabled');
+            }
+            
+            if (richCount > 0) {
+                downloadRich.href = `${API_BASE}${data.downloads.rich_media_original}`;
+                downloadRich.classList.remove('disabled');
+            } else {
+                downloadRich.href = '#';
+                downloadRich.classList.add('disabled');
+            }
+            
+            if (pureCount + richCount > 0) {
+                downloadAll.href = `${API_BASE}${data.downloads.all_files}`;
+                downloadAll.classList.remove('disabled');
+            } else {
+                downloadAll.href = '#';
+                downloadAll.classList.add('disabled');
+            }
+            
+            // 独一份下载链接
+            if (data.downloads.unique_pure_text && uniquePureCount > 0) {
+                downloadUniquePure.href = `${API_BASE}${data.downloads.unique_pure_text}`;
+                downloadUniquePure.classList.remove('disabled');
+                document.getElementById('uniquePureHint').textContent = `${uniquePureCount} 个文件 · 去重后`;
+            } else {
+                downloadUniquePure.href = '#';
+                downloadUniquePure.classList.add('disabled');
+                document.getElementById('uniquePureHint').textContent = '0 个文件';
+            }
+            
+            // 富媒体独一份下载链接
+            if (data.downloads.unique_rich_media && uniqueRichCount > 0) {
+                downloadUniqueRich.href = `${API_BASE}${data.downloads.unique_rich_media}`;
+                downloadUniqueRich.classList.remove('disabled');
+                document.getElementById('uniqueRichHint').textContent = `${uniqueRichCount} 个文件 · 去重后`;
+            } else {
+                downloadUniqueRich.href = '#';
+                downloadUniqueRich.classList.add('disabled');
+                document.getElementById('uniqueRichHint').textContent = '0 个文件';
+            }
+            
+            // 新增：原始重复文件和处理失败文件的下载链接
+            // 只基于count判断，因为后端会根据count创建ZIP
+            if (duplicateCount > 0) {
+                const downloadUrl = data.downloads.duplicates || `/api/v1/batch/download/duplicates/${taskId}`;
+                downloadDuplicates.href = `${API_BASE}${downloadUrl}`;
+                downloadDuplicates.classList.remove('disabled');
+                console.log('启用原始重复文件按钮:', downloadUrl);
+            } else {
+                downloadDuplicates.href = '#';
+                downloadDuplicates.classList.add('disabled');
+            }
+            
+            if (failedCount > 0) {
+                const downloadUrl = data.downloads.failed || `/api/v1/batch/download/failed/${taskId}`;
+                downloadFailed.href = `${API_BASE}${downloadUrl}`;
+                downloadFailed.classList.remove('disabled');
+                console.log('启用失败文件按钮:', downloadUrl);
+            } else {
+                downloadFailed.href = '#';
+                downloadFailed.classList.add('disabled');
+            }
+            
+            // 新增：临时锁文件下载链接
+            if (tempFileCount > 0) {
+                const downloadUrl = data.downloads.temp_files || `/api/v1/batch/download/temp-files/${taskId}`;
+                downloadTempFiles.href = `${API_BASE}${downloadUrl}`;
+                downloadTempFiles.classList.remove('disabled');
+                document.getElementById('tempFileHint').textContent = `${tempFileCount} 个文件`;
+                console.log('启用临时锁文件按钮:', downloadUrl);
+            } else {
+                downloadTempFiles.href = '#';
+                downloadTempFiles.classList.add('disabled');
+                document.getElementById('tempFileHint').textContent = '0 个文件';
+            }
+            
+            // 纯文本文件列表
+            if (data.pure_text_files && data.pure_text_files.length > 0) {
+                document.getElementById('pureTextSection').style.display = 'block';
+                const pureTextList = document.getElementById('pureTextList');
+                pureTextList.innerHTML = '';
+                
+                data.pure_text_files.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'file-result-item';
+                    item.textContent = `${file.original_path} → ${file.converted_path}`;
+                    pureTextList.appendChild(item);
+                });
+            } else {
+                document.getElementById('pureTextSection').style.display = 'none';
+            }
+            
+            // 富媒体文件列表
+            if (data.rich_media_files && data.rich_media_files.length > 0) {
+                document.getElementById('richMediaSection').style.display = 'block';
+                const richMediaList = document.getElementById('richMediaList');
+                richMediaList.innerHTML = '';
+                
+                data.rich_media_files.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'file-result-item';
+                    item.textContent = `${file.path} (${file.reason})`;
+                    richMediaList.appendChild(item);
+                });
+            } else {
+                document.getElementById('richMediaSection').style.display = 'none';
+            }
+        }
+        
+        // 显示错误
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+        
+        // 阻止禁用按钮的点击
+        document.addEventListener('click', (e) => {
+            const target = e.target.closest('.download-btn');
+            if (target && target.classList.contains('disabled')) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('禁用按钮被点击，已阻止');
+                return false;
+            }
+        }, true);  // 使用捕获阶段，优先级更高
+    </script>
+</body>
+</html>
