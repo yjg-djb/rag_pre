@@ -1,51 +1,55 @@
-# 文档检测与批量处理系统
+Here is the complete English translation of the document, formatted in Markdown.
 
-## 功能说明
+---
 
-本系统实现了文档纯文本检测与批量处理功能：
+# Document Detection and Batch Processing System
 
-1. **单文件分析**：上传单个文件，检测是否为纯文本，并自动转换为 DOCX
-2. **批量上传**：支持批量上传文件，保留目录结构
-3. **智能检测**：检测文档中的图片、图表等富媒体内容
-4. **格式转换**：将纯文本文档统一转换为 DOCX 格式
-5. **分类下载**：提供纯文本、富媒体、全部文件三种下载方式
+## Functional Description
 
-## 支持格式
+This system implements document plain text detection and batch processing capabilities:
 
-- 文本：`.txt`, `.md`
-- Office：`.docx`, `.xlsx`, `.pptx`
-- PDF：`.pdf`
+1.  **Single File Analysis**: Upload a single file to detect if it is plain text, and automatically convert it to DOCX.
+2.  **Batch Upload**: Support batch file uploads while preserving the directory structure.
+3.  **Intelligent Detection**: Detect rich media content such as images and charts within documents.
+4.  **Format Conversion**: Unify plain text documents by converting them to DOCX format.
+5.  **Categorized Download**: Provide three download options: plain text files, rich media files, and all files.
 
-## 快速开始
+## Supported Formats
 
-### 1. 安装依赖
+-   **Text**: `.txt`, `.md`
+-   **Office**: `.docx`, `.xlsx`, `.pptx`
+-   **PDF**: `.pdf`
+
+## Quick Start
+
+### 1. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 启动服务
+### 2. Start the Service
 
 ```bash
 python main.py
 ```
 
-服务将在 `http://localhost:8000` 启动
+The service will start at `http://localhost:8000`.
 
-### 3. 访问 API 文档
+### 3. Access API Documentation
 
-浏览器打开：`http://localhost:8000/docs`
+Open in browser: `http://localhost:8000/docs`
 
-## API 使用示例
+## API Usage Examples
 
-### 单文件上传
+### Single File Upload
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/document/analyze" \
   -F "file=@document.pdf"
 ```
 
-### 批量上传（保留目录结构）
+### Batch Upload (Preserving Directory Structure)
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/documents/batch-upload" \
@@ -54,58 +58,58 @@ curl -X POST "http://localhost:8000/api/v1/documents/batch-upload" \
   -F "files=@readme.txt;filename=readme.txt"
 ```
 
-### 查询任务状态
+### Query Task Status
 
 ```bash
 curl "http://localhost:8000/api/v1/batch/status/{task_id}"
 ```
 
-### 下载文件
+### Download Files
 
 ```bash
-# 下载纯文字转换后的文件
+# Download converted plain text files
 curl "http://localhost:8000/api/v1/batch/download/pure-converted/{task_id}" -o pure.zip
 
-# 下载富媒体原文件
+# Download original rich media files
 curl "http://localhost:8000/api/v1/batch/download/rich-original/{task_id}" -o rich.zip
 
-# 下载所有文件
+# Download all files
 curl "http://localhost:8000/api/v1/batch/download/all/{task_id}" -o all.zip
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 kb-jx/
-├── main.py                 # FastAPI 主程序
-├── requirements.txt        # 依赖
+├── main.py                 # FastAPI Main Program
+├── requirements.txt        # Dependencies
 ├── api/
 │   └── v1/
-│       └── endpoints.py    # API 端点
+│       └── endpoints.py    # API Endpoints
 ├── services/
-│   ├── detector.py         # 文档检测服务
-│   ├── converter.py        # 格式转换服务
-│   └── zipper.py          # ZIP 打包服务
+│   ├── detector.py         # Document Detection Service
+│   ├── converter.py        # Format Conversion Service
+│   └── zipper.py           # ZIP Packaging Service
 ├── models/
-│   └── schemas.py         # 数据模型
+│   └── schemas.py          # Data Models
 ├── utils/
-│   └── file_handler.py    # 文件处理工具
-└── storage/               # 存储目录（自动创建）
-    ├── original/          # 原始文件
-    ├── converted/         # 转换后文件
-    └── batch/             # 批量任务文件
+│   └── file_handler.py     # File Handling Utilities
+└── storage/                # Storage Directory (Auto-created)
+    ├── original/           # Original Files
+    ├── converted/          # Converted Files
+    └── batch/              # Batch Task Files
 ```
 
-## 注意事项
+## Important Notes
 
-1. 上传批量文件时，可在 `filename` 参数中指定相对路径来保留目录结构
-2. 系统会自动创建 `storage` 目录用于存储文件
-3. 批量处理支持最大 5 个并发任务
-4. 任务完成后可通过 API 下载 ZIP 包，包含完整目录结构
+1.  When uploading batch files, specify the relative path in the `filename` parameter to preserve the directory structure.
+2.  The system will automatically create the `storage` directory to store files.
+3.  Batch processing supports a maximum of 5 concurrent tasks.
+4.  Once the task is complete, a ZIP package containing the full directory structure can be downloaded via the API.
 
-## 测试建议
+## Testing Suggestions
 
-1. 准备测试文件（包含纯文本和富媒体文档）
-2. 使用 Postman 或 curl 测试 API
-3. 访问 `/docs` 查看交互式 API 文档
-4. 检查下载的 ZIP 包是否保留了目录结构
+1.  Prepare test files (including both plain text and rich media documents).
+2.  Use Postman or curl to test the APIs.
+3.  Visit `/docs` to view the interactive API documentation.
+4.  Check if the downloaded ZIP package retains the directory structure.
